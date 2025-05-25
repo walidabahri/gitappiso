@@ -6,8 +6,67 @@
 //
 
 import Foundation
+import Combine
 
-struct AuthService {
+class AuthService: ObservableObject {
+    static let shared = AuthService()
+    private var cancellables = Set<AnyCancellable>()
+    
+    @Published var currentUser: User?
+    @Published var isAuthenticated = false
+    @Published var isLoading = false
+    @Published var errorMessage: String? = nil
+    
+    init() {
+        // Check if we have a stored token and set authentication state
+        if let token = UserDefaults.standard.string(forKey: "access") {
+            isAuthenticated = true
+            loadCurrentUser()
+        }
+    }
+    
+    func login(username: String, password: String) {
+        isLoading = true
+        errorMessage = nil
+        
+        APIService.shared.login(username: username, password: password)
+            .sink(receiveCompletion: { [weak self] completion in
+                self?.isLoading = false
+                if case .failure(let error) = completion {
+                    if let apiError = error as? APIError {
+                        self?.errorMessage = apiError.errorDescription
+                    } else {
+                        self?.errorMessage = error.localizedDescription
+                    }
+                }
+            }, receiveValue: { [weak self] _ in
+                self?.isAuthenticated = true
+                self?.loadCurrentUser()
+            })
+            .store(in: &cancellables)
+    }
+    
+    func logout() {
+        APIService.shared.logout()
+        currentUser = nil
+        isAuthenticated = false
+    }
+    
+    private func loadCurrentUser() {
+        APIService.shared.getCurrentUser()
+            .sink(receiveCompletion: { [weak self] completion in
+                if case .failure(let error) = completion {
+                    print("Failed to load user: \(error)")
+                    // If we can't load the user, consider them logged out
+                    self?.logout()
+                }
+            }, receiveValue: { [weak self] user in
+                self?.currentUser = user
+            })
+            .store(in: &cancellables)
+    }
+    
+    // For backwards compatibility
     static func login(username: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
         guard let url = URL(string: "http://localhost:8000/api/token/") else {
             completion(.failure(AuthError.invalidURL))
@@ -50,6 +109,3 @@ struct AuthService {
         }
     }
 }
-
-
-
