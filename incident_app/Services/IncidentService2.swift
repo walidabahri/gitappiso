@@ -33,7 +33,7 @@ class IncidentService {
             return
         }
         
-        guard let request = AuthService.createAuthorizedRequest(url: url) else {
+        guard let request = createAuthorizedRequest(url: url) else {
             completion(.failure(.notAuthenticated))
             return
         }
@@ -89,7 +89,7 @@ class IncidentService {
             return
         }
         
-        guard let request = AuthService.createAuthorizedRequest(url: url) else {
+        guard let request = createAuthorizedRequest(url: url) else {
             completion(.failure(.notAuthenticated))
             return
         }
@@ -149,10 +149,13 @@ class IncidentService {
             return
         }
         
-        guard var request = AuthService.createAuthorizedRequest(url: url, method: "POST") else {
+        guard var request = createAuthorizedRequest(url: url) else {
             completion(.failure(.notAuthenticated))
             return
         }
+        
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         do {
             let encoder = JSONEncoder()
@@ -180,16 +183,19 @@ class IncidentService {
                     completion(.failure(.notAuthenticated))
                     return
                 }
-                if httpResponse.statusCode == 400 {
-                    // Handle validation errors
-                    if let data = data,
-                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        completion(.failure(.validationError(json)))
-                    } else {
-                        completion(.failure(.serverError(httpResponse.statusCode)))
+                
+                // Try to extract validation errors
+                if httpResponse.statusCode == 400, let data = data {
+                    do {
+                        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                            completion(.failure(.validationError(json)))
+                            return
+                        }
+                    } catch {
+                        // If we can't parse the error, just use the status code
                     }
-                    return
                 }
+                
                 completion(.failure(.serverError(httpResponse.statusCode)))
                 return
             }
@@ -218,21 +224,24 @@ class IncidentService {
     // MARK: - Incident Updates
     
     /// Update an incident
-    static func updateIncident(id: Int, updates: IncidentUpdateRequest, completion: @escaping (Result<Incident, IncidentError>) -> Void) {
+    static func updateIncident(id: Int, update: IncidentUpdateRequest, completion: @escaping (Result<Incident, IncidentError>) -> Void) {
         guard let url = URL(string: "\(baseURL)/incidents/\(id)/") else {
             completion(.failure(.invalidURL))
             return
         }
         
-        guard var request = AuthService.createAuthorizedRequest(url: url, method: "PATCH") else {
+        guard var request = createAuthorizedRequest(url: url) else {
             completion(.failure(.notAuthenticated))
             return
         }
         
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
         do {
             let encoder = JSONEncoder()
             encoder.keyEncodingStrategy = .convertToSnakeCase
-            request.httpBody = try encoder.encode(updates)
+            request.httpBody = try encoder.encode(update)
         } catch {
             completion(.failure(.encodingError(error)))
             return
@@ -259,16 +268,19 @@ class IncidentService {
                     completion(.failure(.notAuthenticated))
                     return
                 }
-                if httpResponse.statusCode == 400 {
-                    // Handle validation errors
-                    if let data = data,
-                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        completion(.failure(.validationError(json)))
-                    } else {
-                        completion(.failure(.serverError(httpResponse.statusCode)))
+                
+                // Try to extract validation errors
+                if httpResponse.statusCode == 400, let data = data {
+                    do {
+                        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                            completion(.failure(.validationError(json)))
+                            return
+                        }
+                    } catch {
+                        // If we can't parse the error, just use the status code
                     }
-                    return
                 }
+                
                 completion(.failure(.serverError(httpResponse.statusCode)))
                 return
             }
@@ -303,12 +315,16 @@ class IncidentService {
             return
         }
         
-        guard var request = AuthService.createAuthorizedRequest(url: url, method: "POST") else {
+        guard var request = createAuthorizedRequest(url: url) else {
             completion(.failure(.notAuthenticated))
             return
         }
         
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
         let commentData = ["text": text]
+        
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: commentData)
         } catch {
