@@ -8,12 +8,10 @@
 import SwiftUI
 
 struct LoginView: View {
+    @StateObject private var authVM = AuthViewModel()
     @State private var username = ""
     @State private var password = ""
-    @State private var errorMessage = ""
-    @State private var isLoading = false
     @State private var showForgotPassword = false
-    @AppStorage("access") var accessToken: String?
     
     var body: some View {
         GeometryReader { geometry in
@@ -54,8 +52,8 @@ struct LoginView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
                         // Error message
-                        if !errorMessage.isEmpty {
-                            Text(errorMessage)
+                        if let error = authVM.error {
+                            Text(error)
                                 .font(.system(size: 14))
                                 .foregroundColor(.red)
                                 .padding(.vertical, 8)
@@ -126,7 +124,7 @@ struct LoginView: View {
                                     .cornerRadius(12)
                                     .frame(height: 56)
                                 
-                                if isLoading {
+                                if authVM.isLoading {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                 } else {
@@ -136,7 +134,7 @@ struct LoginView: View {
                                 }
                             }
                         }
-                        .disabled(isLoading)
+                        .disabled(authVM.isLoading)
                     }
                     .padding(24)
                     .background(Color.theme.background)
@@ -158,28 +156,12 @@ struct LoginView: View {
     
     func login() {
         guard !username.isEmpty && !password.isEmpty else {
-            errorMessage = "Por favor, introduzca su usuario y contraseña"
+            authVM.error = "Por favor, introduzca su usuario y contraseña"
             return
         }
         
-        isLoading = true
-        errorMessage = ""
-        
-        AuthService.login(username: username, password: password) { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                
-                switch result {
-                case .success(let user):
-                    // Store the user in UserDefaults or another persistence mechanism
-                    print("Successfully logged in as \(user.fullName)")
-                    // This value will trigger navigation in the main app view
-                    accessToken = AuthService.getAccessToken()
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
-                }
-            }
-        }
+        // The ViewModel will handle loading state internally
+        authVM.login(username: username, password: password)
     }
 }
 

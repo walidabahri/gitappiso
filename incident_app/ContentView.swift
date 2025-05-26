@@ -8,12 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    @AppStorage("access") private var accessToken: String?
+    @StateObject private var authVM = AuthViewModel()
     @State private var selectedTab = 0
     
     var body: some View {
         Group {
-            if accessToken == nil {
+            if !authVM.isLoggedIn {
                 // User is not logged in
                 LoginView()
             } else {
