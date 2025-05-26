@@ -15,30 +15,29 @@ struct LoginView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 0) {
-                    // Header Image with Overlay
+                    // Header with background image
                     ZStack {
-                        // Placeholder color if image fails to load
-                        Color.theme.primary.opacity(0.8)
+                        // Background image
+                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/3760529/pexels-photo-3760529.jpeg")) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            Color.theme.primary.opacity(0.8)
+                        }
+                        .frame(height: 240)
+                        
+                        // Overlay
+                        Color.theme.primary
+                            .opacity(0.7)
                             .frame(height: 240)
                         
-                        // Background image with overlay
-                        Image(systemName: "building.2.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 100)
-                            .foregroundColor(.white.opacity(0.3))
-                        
                         // Title
-                        VStack(spacing: 8) {
-                            Text("Gestión de Incidencias")
-                                .font(.titleLarge)
-                                .foregroundColor(.white)
-                            
-                            Text("Acceso de Operarios")
-                                .font(.bodyLarge)
-                                .foregroundColor(.white.opacity(0.8))
-                        }
+                        Text("Gestión de Incidencias")
+                            .font(.titleLarge)
+                            .foregroundColor(.white)
                     }
+                    .frame(height: 240)
                     
                     // Login Form
                     VStack(spacing: 24) {
@@ -53,27 +52,26 @@ struct LoginView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
-                        if let errorMessage = viewModel.errorMessage {
-                            Text(errorMessage)
+                        if let error = viewModel.error {
+                            Text(error)
                                 .font(.bodyMedium)
                                 .foregroundColor(.red)
-                                .padding(12)
-                                .background(Color.red.opacity(0.1))
-                                .cornerRadius(8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 8)
                         }
                         
-                        // Username field
+                        // Username Field
                         CustomTextField(
-                            text: $viewModel.username,
                             placeholder: "Usuario",
-                            icon: "person.fill"
+                            icon: "person.fill",
+                            text: $viewModel.username
                         )
                         
                         // Password field
                         CustomTextField(
-                            text: $viewModel.password,
                             placeholder: "Contraseña",
                             icon: "lock.fill",
+                            text: $viewModel.password,
                             isSecure: true
                         )
                         

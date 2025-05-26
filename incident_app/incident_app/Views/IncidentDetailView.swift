@@ -95,6 +95,7 @@ class IncidentDetailViewModel: ObservableObject {
 
 struct IncidentDetailView: View {
     @StateObject private var viewModel: IncidentDetailViewModel
+    @Environment(\.presentationMode) private var presentationMode
     
     init(incidentId: Int) {
         _viewModel = StateObject(wrappedValue: IncidentDetailViewModel(incidentId: incidentId))
@@ -102,13 +103,27 @@ struct IncidentDetailView: View {
     
     var body: some View {
         ScrollView {
-            ZStack {
-                // Background
-                Color.theme.background
-                    .ignoresSafeArea()
+            VStack(spacing: 0) {
+                // Navigation header
+                HStack {
+                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.white)
+                            .padding(8)
+                    }
+                    
+                    Text("Detalles de Incidencia")
+                        .font(.titleSmall)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(Color.theme.primary)
+                .ignoresSafeArea(edges: .top)
                 
-                VStack(alignment: .leading, spacing: 16) {
-                    if let incident = viewModel.incident {
+                if let incident = viewModel.incident {
                         // Incident header
                         VStack(alignment: .leading, spacing: 12) {
                             HStack(spacing: 12) {
@@ -210,31 +225,42 @@ struct IncidentDetailView: View {
                         .background(Color.white)
                         .cornerRadius(16)
                         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-                        
-                        // Status update section
+                                                // Status update section
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Actualizar Estado")
-                                .font(.bodyMedium.weight(.semibold))
+                            Text("Cambiar Estado")
+                                .font(.titleSmall)
                                 .foregroundColor(.theme.textPrimary)
                             
                             HStack(spacing: 8) {
-                                Spacer()
-                                StatusButton(status: "pendiente", currentStatus: incident.status) {
-                                    viewModel.updateStatus(status: "pendiente")
-                                }
+                                StatusButton(
+                                    status: "pending",
+                                    label: "Pendiente",
+                                    color: .theme.pending,
+                                    isSelected: incident.status == "pending",
+                                    action: {
+                                        viewModel.updateStatus(status: "pending")
+                                    }
+                                )
                                 
-                                StatusButton(status: "en_proceso", currentStatus: incident.status) {
-                                    viewModel.updateStatus(status: "en_proceso")
-                                }
+                                StatusButton(
+                                    status: "resolved",
+                                    label: "Resuelto",
+                                    color: .theme.resolved,
+                                    isSelected: incident.status == "resolved",
+                                    action: {
+                                        viewModel.updateStatus(status: "resolved")
+                                    }
+                                )
                                 
-                                StatusButton(status: "resuelta", currentStatus: incident.status) {
-                                    viewModel.updateStatus(status: "resuelta")
-                                }
-                                
-                                StatusButton(status: "cancelada", currentStatus: incident.status) {
-                                    viewModel.updateStatus(status: "cancelada")
-                                }
-                                Spacer()
+                                StatusButton(
+                                    status: "cancelled",
+                                    label: "Cancelado",
+                                    color: .theme.cancelled,
+                                    isSelected: incident.status == "cancelled",
+                                    action: {
+                                        viewModel.updateStatus(status: "cancelled")
+                                    }
+                                )
                             }
                             .padding(.vertical, 8)
                         }
@@ -245,9 +271,16 @@ struct IncidentDetailView: View {
                         
                         // Comments section
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Comentarios")
-                                .font(.bodyMedium.weight(.semibold))
-                                .foregroundColor(.theme.textPrimary)
+                            HStack {
+                                Text("Comentarios")
+                                    .font(.titleSmall)
+                                    .foregroundColor(.theme.textPrimary)
+                                
+                                Text("\(viewModel.comments.count)")
+                                    .font(.bodyMedium)
+                                    .foregroundColor(.theme.textSecondary)
+                                    .padding(.leading, 4)
+                            }
                             
                             if viewModel.isCommentsLoading {
                                 HStack {
@@ -393,8 +426,49 @@ struct IncidentDetailView: View {
                 }
             }
         }
-        .navigationTitle("Detalles de Incidencia")
-        .navigationBarTitleDisplayMode(.inline)
+        .overlay(alignment: .bottom) {
+            // Add comment bar
+            if let incident = viewModel.incident, incident.status != "cancelled" && incident.status != "resolved" {
+                HStack(spacing: 12) {
+                    // Comment text field
+                    HStack {
+                        Image(systemName: "text.bubble")
+                            .foregroundColor(.theme.textSecondary)
+                            .padding(.leading, 12)
+                        
+                        TextField("Añadir un comentario...", text: $viewModel.newComment)
+                            .padding(.vertical, 12)
+                    }
+                    .background(Color.theme.background)
+                    .cornerRadius(24)
+                    
+                    // Photo button
+                    Button(action: {}) {
+                        Image(systemName: "camera.fill")
+                            .foregroundColor(.white)
+                            .padding(12)
+                            .background(Color.theme.secondary)
+                            .clipShape(Circle())
+                    }
+                    
+                    // Send button
+                    Button(action: viewModel.addComment) {
+                        Image(systemName: "paperplane.fill")
+                            .foregroundColor(.white)
+                            .padding(12)
+                            .background(Color.theme.primary)
+                            .clipShape(Circle())
+                    }
+                    .disabled(viewModel.newComment.isEmpty)
+                    .opacity(viewModel.newComment.isEmpty ? 0.5 : 1)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.theme.card)
+                .shadow(color: Color.black.opacity(0.1), radius: 5, y: -2)
+            }
+        }
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 

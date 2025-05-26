@@ -13,37 +13,24 @@ struct CommentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                // User avatar placeholder
-                Image(systemName: "person.circle.fill")
-                    .foregroundColor(.theme.secondary)
-                    .font(.system(size: 32))
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(comment.user.fullName)
-                        .font(.bodyMedium.weight(.semibold))
-                        .foregroundColor(.theme.textPrimary)
-                    
-                    Text(comment.formattedDate)
-                        .font(.bodySmall)
-                        .foregroundColor(.theme.textSecondary)
-                }
+                Text(comment.user.fullName)
+                    .font(.bodyMedium.weight(.semibold))
+                    .foregroundColor(.theme.textPrimary)
                 
                 Spacer()
+                
+                Text(comment.formattedDate)
+                    .font(.bodySmall)
+                    .foregroundColor(.theme.textSecondary)
             }
             
             Text(comment.content)
                 .font(.bodyMedium)
-                .foregroundColor(.theme.textPrimary)
-                .padding(12)
-                .background(Color.theme.background)
-                .cornerRadius(10)
+                .foregroundColor(.theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.theme.border, lineWidth: 1)
-        )
+        .padding(12)
+        .background(Color.theme.background)
+        .cornerRadius(8)
     }
 }

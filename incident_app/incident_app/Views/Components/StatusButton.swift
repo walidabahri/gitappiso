@@ -9,59 +9,58 @@ import SwiftUI
 
 struct StatusButton: View {
     let status: String
-    let currentStatus: String
+    let label: String
+    let color: Color
+    let isSelected: Bool
     let action: () -> Void
     
-    private var isSelected: Bool {
-        status == currentStatus
+    init(status: String, label: String, color: Color, isSelected: Bool, action: @escaping () -> Void) {
+        self.status = status
+        self.label = label
+        self.color = color
+        self.isSelected = isSelected
+        self.action = action
     }
     
-    private var buttonColor: Color {
+    // Convenience initializer using predefined status
+    init(status: String, currentStatus: String, action: @escaping () -> Void) {
+        let isSelected = status == currentStatus
+        let statusColor: Color
+        let statusLabel: String
+        
         switch status {
-        case "pendiente":
-            return .theme.warning
-        case "en_proceso":
-            return .theme.info
-        case "resuelta":
-            return .theme.success
-        case "cancelada":
-            return .theme.critical
+        case "pending", "pendiente":
+            statusColor = .theme.pending
+            statusLabel = "Pendiente"
+        case "in_progress", "en_proceso":
+            statusColor = .theme.inProgress
+            statusLabel = "En Progreso"
+        case "resolved", "resuelta":
+            statusColor = .theme.resolved
+            statusLabel = "Resuelto"
+        case "cancelled", "cancelada":
+            statusColor = .theme.cancelled
+            statusLabel = "Cancelado"
         default:
-            return .gray
+            statusColor = .gray
+            statusLabel = status.capitalized
         }
-    }
-    
-    private var statusText: String {
-        switch status {
-        case "pendiente":
-            return "Pendiente"
-        case "en_proceso":
-            return "En Proceso"
-        case "resuelta":
-            return "Resuelta"
-        case "cancelada":
-            return "Cancelada"
-        default:
-            return status.capitalized
-        }
+        
+        self.init(status: status, label: statusLabel, color: statusColor, isSelected: isSelected, action: action)
     }
     
     var body: some View {
         Button(action: action) {
-            Text(statusText)
-                .font(.bodySmall.weight(.semibold))
-                .foregroundColor(isSelected ? .white : buttonColor)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    isSelected ? 
-                    buttonColor : 
-                    buttonColor.opacity(0.1)
-                )
-                .clipShape(Capsule())
+            Text(label)
+                .font(.bodyMedium.weight(.medium))
+                .foregroundColor(isSelected ? .white : color)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(isSelected ? color : Color.white)
+                .cornerRadius(8)
                 .overlay(
-                    Capsule()
-                        .stroke(buttonColor, lineWidth: isSelected ? 0 : 1)
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(color, lineWidth: 1)
                 )
                 .animation(.easeInOut(duration: 0.2), value: isSelected)
         }
