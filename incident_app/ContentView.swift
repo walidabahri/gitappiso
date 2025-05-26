@@ -196,9 +196,14 @@ struct ProfileView: View {
     
     private var userInitials: String {
         if let user = currentUser {
-            let firstInitial = String(user.firstName.prefix(1))
-            let lastInitial = String(user.lastName.prefix(1))
-            return "\(firstInitial)\(lastInitial)"
+            let firstInitial = user.firstName?.prefix(1).map { String($0) } ?? ""
+            let lastInitial = user.lastName?.prefix(1).map { String($0) } ?? ""
+            
+            if !firstInitial.isEmpty || !lastInitial.isEmpty {
+                return "\(firstInitial)\(lastInitial)"
+            } else {
+                return user.username.prefix(2).uppercased()
+            }
         }
         return "--"
     }
@@ -208,7 +213,19 @@ struct ProfileView: View {
     }
     
     private var userRole: String {
-        currentUser?.role.displayText ?? "--"
+        guard let role = currentUser?.role else { return "--" }
+        
+        // Convert role string to display format
+        switch role.lowercased() {
+        case "worker", "operator":
+            return "Operador"
+        case "manager":
+            return "Supervisor"
+        case "admin":
+            return "Administrador"
+        default:
+            return role.capitalized
+        }
     }
     
     private var userEmail: String {

@@ -62,10 +62,10 @@ struct User: Identifiable, Codable {
 extension User {
     static var sampleData: [User] {
         [
-            User(id: 1, username: "jperez", email: "juan.perez@example.com", firstName: "Juan", lastName: "Pérez", role: .admin, profileImage: nil),
-            User(id: 2, username: "mgarcia", email: "maria.garcia@example.com", firstName: "María", lastName: "García", role: .manager, profileImage: nil),
-            User(id: 3, username: "alopez", email: "antonio.lopez@example.com", firstName: "Antonio", lastName: "López", role: .worker, profileImage: nil),
-            User(id: 4, username: "srodriguez", email: "sofia.rodriguez@example.com", firstName: "Sofía", lastName: "Rodríguez", role: .worker, profileImage: nil)
+            User(id: 1, username: "jperez", role: "admin", email: "juan.perez@example.com", firstName: "Juan", lastName: "Pérez", profileImage: nil),
+            User(id: 2, username: "mgarcia", role: "manager", email: "maria.garcia@example.com", firstName: "María", lastName: "García", profileImage: nil),
+            User(id: 3, username: "alopez", role: "worker", email: "antonio.lopez@example.com", firstName: "Antonio", lastName: "López", profileImage: nil),
+            User(id: 4, username: "srodriguez", role: "worker", email: "sofia.rodriguez@example.com", firstName: "Sofía", lastName: "Rodríguez", profileImage: nil)
         ]
     }
     
