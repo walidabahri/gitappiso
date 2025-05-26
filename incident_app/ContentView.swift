@@ -196,13 +196,13 @@ struct ProfileView: View {
     
     private var userInitials: String {
         if let user = currentUser {
-            let firstInitial = user.firstName?.prefix(1).map { String($0) } ?? ""
-            let lastInitial = user.lastName?.prefix(1).map { String($0) } ?? ""
+            let firstInitial = user.firstName?.prefix(1).map { String($0) }.joined() ?? ""
+            let lastInitial = user.lastName?.prefix(1).map { String($0) }.joined() ?? ""
             
             if !firstInitial.isEmpty || !lastInitial.isEmpty {
                 return "\(firstInitial)\(lastInitial)"
             } else {
-                return user.username.prefix(2).uppercased()
+                return String(user.username.prefix(2)).uppercased()
             }
         }
         return "--"
